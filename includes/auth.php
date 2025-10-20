@@ -1,6 +1,6 @@
 <?php
 function check_access($required_permission) {
-    include_once 'db_connect1.php';
+    include_once 'db_connect1.php'; // Change path to match actual location of db_connect1.php
     $permissions = $_SESSION['permissions'] ?? [];
 
     if (!in_array($required_permission, $permissions)) {
