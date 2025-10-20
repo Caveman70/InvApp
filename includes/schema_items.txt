@@ -1,0 +1,132 @@
+-- Database: `inventory`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `items`
+--
+
+CREATE TABLE `items` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `category_id` int(11) NOT NULL,
+  `sku` varchar(100) DEFAULT NULL,
+  `unit_cost` decimal(10,2) DEFAULT 0.00,
+  `reorder_threshold` int(11) DEFAULT 0,
+  `supplier_info` varchar(255) DEFAULT NULL,
+  `serial_number` varchar(100) DEFAULT NULL,
+  `status` enum('available','in_use','maintenance','damaged') DEFAULT 'available',
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_by` int(11) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `item_history`
+--
+
+CREATE TABLE `item_history` (
+  `id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `action_type` enum('create','update','delete','stock_adjust','location_change','assignment') NOT NULL,
+  `details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`details`)),
+  `performed_by` int(11) DEFAULT NULL,
+  `performed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `item_stocks`
+--
+
+CREATE TABLE `item_stocks` (
+  `id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `location_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 0,
+  `last_adjusted_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `items`
+--
+ALTER TABLE `items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `category_id` (`category_id`),
+  ADD KEY `created_by` (`created_by`),
+  ADD KEY `updated_by` (`updated_by`);
+
+--
+-- Indexes for table `item_history`
+--
+ALTER TABLE `item_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `item_id` (`item_id`),
+  ADD KEY `performed_by` (`performed_by`);
+
+--
+-- Indexes for table `item_stocks`
+--
+ALTER TABLE `item_stocks`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `item_id` (`item_id`,`location_id`),
+  ADD KEY `location_id` (`location_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `items`
+--
+ALTER TABLE `items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `item_history`
+--
+ALTER TABLE `item_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `item_stocks`
+--
+ALTER TABLE `item_stocks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `items`
+--
+ALTER TABLE `items`
+  ADD CONSTRAINT `items_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `items_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `items_ibfk_3` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `item_history`
+--
+ALTER TABLE `item_history`
+  ADD CONSTRAINT `item_history_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `item_history_ibfk_2` FOREIGN KEY (`performed_by`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `item_stocks`
+--
+ALTER TABLE `item_stocks`
+  ADD CONSTRAINT `item_stocks_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `item_stocks_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`) ON DELETE CASCADE;
+COMMIT;
